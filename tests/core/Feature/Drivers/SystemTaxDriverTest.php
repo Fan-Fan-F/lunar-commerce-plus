@@ -243,3 +243,19 @@ test('can get breakdown with correct tax zone', function () {
     expect($breakdown->amounts[0]->price->value)->toEqual(100);
     expect($breakdown->amounts[1]->price->value)->toEqual(150);
 });
+
+test('safely returns empty breakdown when no tax zone or default exists', function () {
+    $currency = Currency::factory()->create();
+    $variant = ProductVariant::factory()->create();
+
+    // Ensure no tax zones exist in database
+    TaxZone::query()->delete();
+
+    $breakdown = (new SystemTaxDriver)
+        ->setCurrency($currency)
+        ->setPurchasable($variant)
+        ->getBreakdown(1000);
+
+    expect($breakdown)->toBeInstanceOf(TaxBreakdown::class);
+    expect($breakdown->amounts->isEmpty())->toBeTrue();
+});

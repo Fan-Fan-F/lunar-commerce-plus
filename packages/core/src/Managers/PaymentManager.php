@@ -4,6 +4,7 @@ namespace Lunar\Managers;
 
 use Illuminate\Support\Manager;
 use Illuminate\Support\Str;
+use Lunar\PaymentTypes\CrossBorderPayment;
 use Lunar\PaymentTypes\OfflinePayment;
 
 class PaymentManager extends Manager
@@ -11,6 +12,11 @@ class PaymentManager extends Manager
     public function createOfflineDriver()
     {
         return $this->buildProvider(OfflinePayment::class);
+    }
+
+    public function createCrossBorderDriver()
+    {
+        return $this->buildProvider(CrossBorderPayment::class);
     }
 
     /**

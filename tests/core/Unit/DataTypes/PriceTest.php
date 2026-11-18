@@ -129,6 +129,19 @@ test('can format numbers specifying decimal places with currency suffix', functi
     expect($dataType->unitFormatted(locale: 'sv', decimalPlaces: 6, trimTrailingZeros: false))->toEqual('5,005000 kr');
 });
 
+test('can handle negative values for refunds and adjustments', function () {
+    $currency = Currency::factory()->create([
+        'code' => 'USD',
+        'decimal_places' => 2,
+    ]);
+
+    $dataType = new Price(-1500, $currency, 1);
+
+    expect($dataType->value)->toEqual(-1500);
+    expect($dataType->decimal)->toEqual(-15.00);
+    expect($dataType->formatted(locale: 'en-us'))->toContain('15.00');
+});
+
 test('can handle decimals being passed', function () {
     $currency = Currency::factory()->create([
         'code' => 'GBP',

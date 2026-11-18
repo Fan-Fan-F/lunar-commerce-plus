@@ -114,7 +114,16 @@ class SystemTaxDriver implements TaxDriver
     public function getBreakdown($subTotal): TaxBreakdown
     {
         $taxZone = $this->taxZone ?? app(GetTaxZone::class)->execute($this->shippingAddress);
-        $taxClass = $this->purchasable->getTaxClass();
+
+        if (! $taxZone) {
+            return new TaxBreakdown;
+        }
+
+        $taxClass = $this->purchasable?->getTaxClass();
+
+        if (! $taxClass) {
+            return new TaxBreakdown;
+        }
 
         $taxAmounts = Blink::once('tax_zone_rates_'.$taxZone->id.'_'.$taxClass->id, function () use ($taxClass, $taxZone) {
             return $taxZone->taxAmounts()->whereTaxClassId($taxClass->id)->get();
@@ -123,10 +132,11 @@ class SystemTaxDriver implements TaxDriver
         if (prices_inc_tax()) {
             // Remove tax from price
             $totalTaxPercentage = $taxAmounts->sum('percentage') / 100; // E.g. 0.2 for 20%
-            $priceExTax = round($subTotal / (1 + $totalTaxPercentage));
+            $priceExTax = ($totalTaxPercentage > -1) ? (int) round($subTotal / (1 + $totalTaxPercentage)) : (int) $subTotal;
 
             // Check to see if the included tax uses the same tax zone
-            if ($this->defaultTaxZone()->id === $taxZone->id) {
+            $defaultTaxZone = $this->defaultTaxZone();
+            if ($defaultTaxZone && $defaultTaxZone->id === $taxZone->id) {
                 // Manually return the tax breakdown
                 $breakdown = new TaxBreakdown;
 

@@ -56,11 +56,16 @@ class DefaultPriceFormatter implements PriceFormatterInterface
         $formatter = new NumberFormatter($locale, $formatterStyle);
 
         $formatter->setTextAttribute(NumberFormatter::CURRENCY_CODE, $this->currency->code);
-        $formatter->setAttribute(NumberFormatter::FRACTION_DIGITS, $decimalPlaces ?? $this->currency->decimal_places);
+        $targetDecimalPlaces = $decimalPlaces ?? $this->currency->decimal_places;
+        $formatter->setAttribute(NumberFormatter::FRACTION_DIGITS, $targetDecimalPlaces);
 
         $formattedPrice = $formatter->format($value);
 
-        if ($trimTrailingZeros) {
+        if ($formattedPrice === false) {
+            $formattedPrice = number_format($value, $targetDecimalPlaces);
+        }
+
+        if ($trimTrailingZeros && is_string($formattedPrice)) {
             $decimalSeparator = $formatter->getSymbol(NumberFormatter::DECIMAL_SEPARATOR_SYMBOL);
 
             $formattedPrice = preg_replace('/(\\'.$decimalSeparator.'\d{'.$this->currency->decimal_places.'}\d*?)0+(\s*\D*)$/', '$1$2', $formattedPrice);

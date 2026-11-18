@@ -48,7 +48,6 @@ class CalculateTax
 
             $cartLine->taxBreakdown = $taxBreakDownResult;
 
-            $cart->taxTotal = new Price($taxTotal, $cart->currency, 1);
             $cartLine->taxAmount = new Price($taxTotal, $cart->currency, $unitQuantity);
 
             if (prices_inc_tax()) {
@@ -66,7 +65,7 @@ class CalculateTax
         $shippingOption = $cart->shippingOptionOverride ?: ShippingManifest::getShippingOption($cart);
 
         if ($shippingOption) {
-            $shippingSubTotal = $cart->shippingBreakdown->items->sum('price.value');
+            $shippingSubTotal = $cart->shippingBreakdown?->items ? $cart->shippingBreakdown->items->sum('price.value') : 0;
 
             $shippingTax = Taxes::setShippingAddress($cart->shippingAddress)
                 ->setCurrency($cart->currency)
